@@ -1,0 +1,21 @@
+[
+  {"name":"rust","files":{"main.rs":"fn main() {}\n"}},
+  {"name":"python","files":{"main.py":"print(1)\n"}},
+  {"name":"ruby","files":{"main.rb":"puts 1\n"}},
+  {"name":"html","files":{"index.html":"<h1>Hello</h1>\n"}},
+  {"name":"css","files":{"style.css":"h1 { color: red; }\n"}},
+  {"name":"typescript","files":{"main.ts":"const answer: number = 42;\n"}},
+  {"name":"markdown-prose","files":{"README.md":"# Documentation\n"}},
+  {"name":"special-filename","files":{"Makefile":"all:\n\techo ok\n"}},
+  {"name":"shebang","files":{"run":"#!/usr/bin/env python3\nprint(1)\n"}},
+  {"name":"modeline","files":{"script":"# -*- mode: ruby -*-\nputs 1\n"}},
+  {"name":"ambiguous-rs","files":{"main.rs":"fn main() {}\n"}},
+  {"name":"ambiguous-h","files":{"include/api.h":"int api(void);\n"}},
+  {"name":"binary-extension","files":{"bad.rs":"\u0000binary"}},
+  {"name":"language-override","files":{".gitattributes":"*.rs linguist-language=Python\n","main.rs":"print(1)\n"}},
+  {"name":"generated-override","files":{".gitattributes":"*.rs linguist-generated\n","main.rs":"fn main() {}\n"}},
+  {"name":"vendored-path","files":{"vendor/lib.rs":"fn lib() {}\n"}},
+  {"name":"documentation-path","files":{"docs/example.rs":"fn example() {}\n"}},
+  {"name":"mixed","files":{"main.rs":"fn main() {}\n","app.py":"print(1)\n","README.md":"# Docs\n"}},
+  {"name":"empty","files":{"empty.rs":""}}
+]

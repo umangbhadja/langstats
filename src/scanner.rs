@@ -309,4 +309,46 @@ mod tests {
         assert_eq!(scan(dir.path(), &ScanOptions::default())?.files_counted, 2);
         Ok(())
     }
+
+    #[test]
+    fn hidden_and_empty_files_have_defined_counts() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        std::fs::write(dir.path().join(".hidden.rs"), "abc")?;
+        std::fs::write(dir.path().join("empty.rs"), "")?;
+        let normal = scan(dir.path(), &ScanOptions::default())?;
+        assert_eq!(normal.files_counted, 1);
+        assert_eq!(normal.total_bytes(), 0);
+        let shown = scan(
+            dir.path(),
+            &ScanOptions {
+                include_hidden: true,
+                ..ScanOptions::default()
+            },
+        )?;
+        assert_eq!(shown.files_counted, 2);
+        assert_eq!(shown.total_bytes(), 3);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlink_skipped_and_non_utf8_name_detected() -> Result<(), Box<dyn std::error::Error>> {
+        use std::os::unix::ffi::OsStringExt;
+        let dir = tempfile::tempdir()?;
+        let name = std::ffi::OsString::from_vec(b"nonutf\xff.rs".to_vec());
+        assert_eq!(
+            crate::detection::detect(Path::new(&name), b"fn f() {}").map(|lang| lang.name.as_str()),
+            Some("Rust")
+        );
+        std::fs::write(dir.path().join("a.rs"), "abc")?;
+        if let Err(error) = std::os::unix::fs::symlink(dir.path(), dir.path().join("loop")) {
+            if error.kind() != std::io::ErrorKind::PermissionDenied {
+                return Err(error.into());
+            }
+        }
+        let result = scan(dir.path(), &ScanOptions::default())?;
+        assert_eq!(result.files_counted, 1);
+        assert_eq!(result.total_bytes(), 3);
+        Ok(())
+    }
 }

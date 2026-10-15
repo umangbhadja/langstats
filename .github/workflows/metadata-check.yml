@@ -1,0 +1,18 @@
+name: Metadata consistency
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Regenerate from pinned upstream
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/github-linguist/linguist/e30359651f214629c697f1eab0eb167dc108e972/lib/linguist/languages.yml -o /tmp/languages.yml
+          ruby scripts/update-linguist-metadata.rb /tmp/languages.yml
+          git diff --exit-code -- data/languages.json

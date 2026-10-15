@@ -34,3 +34,18 @@ release assets; documentation and audit. Commit each verified feature locally.
 Repository has one `README.md` and initial commit. Local Rust toolchain availability
 must be checked before implementation tests. Exact Linguist parity requires upstream
 fixture comparison; document measured gaps rather than asserting parity.
+
+## Current implementation
+
+`src/main.rs` parses options and renders reports. `src/scanner.rs` uses `ignore`
+for traversal, a bounded synchronous work queue, and a fixed worker pool.
+Workers read at most 8 KiB per file; byte totals come from file metadata.
+`src/metadata.rs` parses checked-in Linguist data once into lookup indexes.
+`src/detection.rs` applies modelines, filenames, shebangs, extensions, and a
+small ambiguous-extension rule set. `src/attributes.rs` loads nested override
+rules before scanning. `src/output.rs` sorts and filters aggregated counts,
+then builds schema-v1 JSON or terminal output.
+
+The attributes prepass walks the directory twice and may become a measurable
+cost on very large trees. Full Git attribute semantics and upstream classifier
+parity remain open, as detailed in `docs/compatibility.md`.

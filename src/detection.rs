@@ -8,7 +8,8 @@ pub fn detect(path: &Path, prefix: &[u8]) -> Option<&'static Language> {
     if prefix.contains(&0) {
         return None;
     }
-    let name = path.file_name()?.to_str()?;
+    let name = path.file_name()?.to_string_lossy();
+    let name = name.as_ref();
     let data = registry();
     let text = String::from_utf8_lossy(prefix);
 

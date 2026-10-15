@@ -26,5 +26,10 @@ Known differences:
 - Local working-tree scan differs from GitHub's default-branch snapshot. Empty
   files are assigned a language and file count but add zero bytes.
 
-The implementation tests cover representative local fixtures. An upstream
-comparison workflow and larger corpus remain required before release claims.
+The implementation tests cover representative local fixtures. Run
+`python3 scripts/compare_linguist.py target/release/langstats` after installing
+the upstream `github-linguist` executable to compare 19 checked-in cases.
+This host has Ruby 2.6 and no installed Linguist gem; the upstream comparison
+has not run. Its results may also depend on upstream gem version, which the
+script prints. A larger, version-pinned corpus remains required before release
+claims.
