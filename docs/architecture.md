@@ -32,8 +32,9 @@ release assets; documentation and audit. Commit each verified feature locally.
 ## Current constraints
 
 The 53 checked-in fixtures match pinned Linguist v9.7.0, but its full classifier
-and attribute behavior remain outside this corpus. Native Linux and Windows CI
-results are still required before cross-platform claims.
+and attribute behavior remain outside this corpus. PR #1 reported passing
+quality jobs on native Linux and Windows runners. Tagged release archives and
+installation on those systems remain unverified.
 
 ## Current implementation
 
