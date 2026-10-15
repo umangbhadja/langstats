@@ -54,6 +54,7 @@ def main():
 
   def install
     bin.install "langstats"
+    pkgshare.install "LICENSE", "NOTICE"
   end
 
   test do

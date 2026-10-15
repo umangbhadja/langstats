@@ -19,9 +19,24 @@ pub fn detect(path: &Path, prefix: &[u8]) -> Option<&'static Language> {
     if let Some(lang) = data.by_filename(name).into_iter().next() {
         return Some(lang);
     }
-    if let Some(lang) = shebang(&text).and_then(|name| data.by_interpreter(name).into_iter().next())
-    {
-        return Some(lang);
+    if let Some(interpreter) = shebang(&text) {
+        let interpreters = data.by_interpreter(interpreter);
+        if interpreter == "node" {
+            let extensions = data.by_extension(name);
+            if let Some(lang) = interpreters.iter().find(|lang| {
+                extensions
+                    .iter()
+                    .any(|candidate| candidate.name == lang.name)
+            }) {
+                return Some(lang);
+            }
+            if let Some(lang) = interpreters.iter().find(|lang| lang.name == "TypeScript") {
+                return Some(lang);
+            }
+        }
+        if let Some(lang) = interpreters.into_iter().next() {
+            return Some(lang);
+        }
     }
     let candidates = data.by_extension(name);
     if candidates.len() == 1 {
@@ -75,6 +90,14 @@ fn ambiguous<'a>(name: &str, text: &str, candidates: &[&'a Language]) -> Option<
         }
     } else if name.ends_with(".md") {
         "Markdown"
+    } else if name.ends_with(".html") {
+        "HTML"
+    } else if name.ends_with(".php") {
+        if text.trim_start().starts_with("<?hh") {
+            "Hack"
+        } else {
+            "PHP"
+        }
     } else if name.ends_with(".h") {
         if text.contains("@interface") || text.contains("@protocol") {
             "Objective-C"
@@ -118,6 +141,43 @@ mod tests {
         assert_eq!(
             detect(Path::new("unknown"), b"# -*- mode: ruby -*-\n").map(|x| x.name.as_str()),
             Some("Ruby")
+        );
+    }
+
+    #[test]
+    fn html_wins_ambiguous_markup_extension() {
+        assert_eq!(
+            detect(Path::new("index.html"), b"<h1>Hello</h1>\n").map(|lang| lang.name.as_str()),
+            Some("HTML")
+        );
+    }
+
+    #[test]
+    fn php_and_hack_share_extension() {
+        assert_eq!(
+            detect(Path::new("index.php"), b"<?php echo 1;\n").map(|lang| lang.name.as_str()),
+            Some("PHP")
+        );
+        assert_eq!(
+            detect(Path::new("index.php"), b"<?hh\necho 1;\n").map(|lang| lang.name.as_str()),
+            Some("Hack")
+        );
+    }
+
+    #[test]
+    fn node_shebang_uses_extension_when_available() {
+        let prefix = b"#!/usr/bin/env node\nconsole.log(1)\n";
+        assert_eq!(
+            detect(Path::new("serve"), prefix).map(|lang| lang.name.as_str()),
+            Some("TypeScript")
+        );
+        assert_eq!(
+            detect(Path::new("serve.js"), prefix).map(|lang| lang.name.as_str()),
+            Some("JavaScript")
+        );
+        assert_eq!(
+            detect(Path::new("serve.ts"), prefix).map(|lang| lang.name.as_str()),
+            Some("TypeScript")
         );
     }
 }

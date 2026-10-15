@@ -173,13 +173,17 @@ fn process_file(task: Task, root: &Path, attributes: &Attributes, result: &mut S
         }
     };
     let mut prefix = [0_u8; 8192];
-    let length = match file.read(&mut prefix) {
-        Ok(length) => length,
-        Err(error) => {
-            result.warn(format!("{}: {error}", task.path.display()));
-            return;
+    let mut length = 0;
+    while length < prefix.len() {
+        match file.read(&mut prefix[length..]) {
+            Ok(0) => break,
+            Ok(read) => length += read,
+            Err(error) => {
+                result.warn(format!("{}: {error}", task.path.display()));
+                return;
+            }
         }
-    };
+    }
     let overrides = attributes.for_path(&task.path);
     let classifications = classify_path(root, &task.path);
     if overrides.detectable == Some(false)
@@ -227,7 +231,7 @@ fn classify_path(root: &Path, path: &Path) -> (bool, bool, bool) {
         .and_then(|name| name.to_str())
         .unwrap_or("");
     let generated = name.ends_with(".min.js") || name.ends_with(".min.css");
-    let mut vendored = false;
+    let mut vendored = generated;
     let mut documentation = false;
     if let Some(parent) = relative.parent() {
         for component in parent.components() {
@@ -306,6 +310,11 @@ mod tests {
             dir.path().join(".gitattributes"),
             "vendor/*.rs -linguist-vendored\n*.min.js -linguist-generated\n",
         )?;
+        assert_eq!(scan(dir.path(), &ScanOptions::default())?.files_counted, 1);
+        std::fs::write(
+            dir.path().join(".gitattributes"),
+            "vendor/*.rs -linguist-vendored\n*.min.js -linguist-generated -linguist-vendored\n",
+        )?;
         assert_eq!(scan(dir.path(), &ScanOptions::default())?.files_counted, 2);
         Ok(())
     }
@@ -327,6 +336,42 @@ mod tests {
         )?;
         assert_eq!(shown.files_counted, 2);
         assert_eq!(shown.total_bytes(), 3);
+        Ok(())
+    }
+
+    #[test]
+    fn unusual_paths_and_nested_ignore() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        let source = dir.path().join("source files");
+        std::fs::create_dir(&source)?;
+        std::fs::write(source.join("café.py"), "print(1)\n")?;
+        std::fs::write(source.join(".gitignore"), "generated/\n")?;
+        std::fs::create_dir(source.join("generated"))?;
+        std::fs::write(source.join("generated/skip.py"), "print(2)\n")?;
+        let result = scan(dir.path(), &ScanOptions::default())?;
+        assert_eq!(result.files_counted, 1);
+        assert_eq!(
+            result.languages.get("Python").map(|count| count.bytes),
+            Some(9)
+        );
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn directory_symlink_is_not_followed() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        std::fs::write(dir.path().join("main.rs"), "abc")?;
+        if let Err(error) = std::os::windows::fs::symlink_dir(dir.path(), dir.path().join("loop")) {
+            if error.kind() == std::io::ErrorKind::PermissionDenied {
+                eprintln!("Windows symlink creation denied; symlink behavior unverified");
+                return Ok(());
+            }
+            return Err(error.into());
+        }
+        let result = scan(dir.path(), &ScanOptions::default())?;
+        assert_eq!(result.files_counted, 1);
+        assert_eq!(result.total_bytes(), 3);
         Ok(())
     }
 

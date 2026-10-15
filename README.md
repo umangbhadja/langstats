@@ -97,9 +97,12 @@ symlinks are skipped. Relevant `.gitattributes` overrides include
 ## Platforms and performance
 
 CI is configured for macOS ARM64/x64, Linux ARM64/x64, and Windows ARM64/x64.
-Only macOS ARM64 has been built and tested locally so far; CI has not run.
-On an Apple M1 MacBook Air, local release benchmark scanned a 5,000-file
-fixture in 0.058 s. One cold first launch took 0.601 s; memory was not measured.
+macOS ARM64 and x64 builds and tests passed locally (x64 through Rosetta);
+CI has not run. Linux and Windows remain unverified on native hosts.
+The 34 checked-in fixtures matched pinned GitHub Linguist v9.7.0 locally.
+On an Apple M1 MacBook Air, a warmed release scan of a 5,000-file fixture
+took 0.044–0.047 s, with peak RSS around 5.1 MB. Filesystem cache state
+was not controlled.
 See [methodology and all scenarios](docs/performance.md). These figures are
 observations, not guarantees.
 
@@ -115,7 +118,8 @@ python3 scripts/benchmark.py target/release/langstats
 
 Dependencies: `clap` parses CLI; `ignore` handles traversal and Git ignore;
 `globset` matches supported attribute patterns; `serde`/`serde_json` provide
-versioned JSON. `tempfile` is test-only. See [architecture](docs/architecture.md),
+versioned JSON. `tempfile` is test-only. See [dependency review](docs/dependencies.md),
+[architecture](docs/architecture.md),
 [contributing](CONTRIBUTING.md), and [release process](docs/release-process.md).
 
 ## Project

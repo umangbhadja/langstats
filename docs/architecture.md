@@ -31,9 +31,9 @@ release assets; documentation and audit. Commit each verified feature locally.
 
 ## Current constraints
 
-Repository has one `README.md` and initial commit. Local Rust toolchain availability
-must be checked before implementation tests. Exact Linguist parity requires upstream
-fixture comparison; document measured gaps rather than asserting parity.
+The 53 checked-in fixtures match pinned Linguist v9.7.0, but its full classifier
+and attribute behavior remain outside this corpus. Native Linux and Windows CI
+results are still required before cross-platform claims.
 
 ## Current implementation
 

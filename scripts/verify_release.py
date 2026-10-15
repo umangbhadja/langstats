@@ -27,7 +27,9 @@ def main():
             with tarfile.open(archive, "r:gz") as package:
                 members = package.getnames()
                 exe = "langstats"
-        if len(members) != 1 or not members[0].endswith(f"/{exe}"):
+        prefix = archive.name.removesuffix(".tar.gz").removesuffix(".zip")
+        expected_members = {f"{prefix}/{name}" for name in (exe, "LICENSE", "NOTICE")}
+        if set(members) != expected_members:
             raise SystemExit(f"unexpected archive members: {archive}")
         sums.append(f"{digest}  {archive.name}")
     (folder / "SHA256SUMS").write_text("\n".join(sums) + "\n")

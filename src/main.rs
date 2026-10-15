@@ -1,7 +1,7 @@
 use clap::{Parser, ValueEnum};
 use langstats::output::{Filter, Sort as ReportSort, build_report, terminal};
 use langstats::scanner::{ScanOptions, scan};
-use std::io::IsTerminal;
+use std::io::{IsTerminal, Write};
 use std::path::PathBuf;
 
 /// Fast, offline language statistics for local directories.
@@ -111,9 +111,12 @@ fn main() {
             },
         },
     );
-    if cli.json || matches!(cli.format, Format::Json) {
+    let rendered = if cli.json || matches!(cli.format, Format::Json) {
         match serde_json::to_string_pretty(&report) {
-            Ok(json) => println!("{json}"),
+            Ok(mut json) => {
+                json.push('\n');
+                json
+            }
             Err(error) => {
                 eprintln!("langstats: JSON serialization failed: {error}");
                 std::process::exit(1);
@@ -123,14 +126,27 @@ fn main() {
         let color = !cli.no_color
             && std::env::var_os("NO_COLOR").is_none()
             && std::io::stdout().is_terminal();
-        print!("{}", terminal(&report, color, cli.quiet));
+        terminal(&report, color, cli.quiet)
+    };
+    if let Err(error) = std::io::stdout().write_all(rendered.as_bytes()) {
+        if error.kind() == std::io::ErrorKind::BrokenPipe {
+            return;
+        }
+        eprintln!("langstats: output failed: {error}");
+        std::process::exit(1);
     }
     if (!cli.quiet || cli.verbose) && !result.warnings.is_empty() {
-        eprintln!(
-            "langstats: {} scan warning(s); first: {}",
-            result.warnings.len() + result.skipped_warnings as usize,
-            result.warnings[0]
-        );
+        if cli.verbose {
+            for warning in &result.warnings {
+                eprintln!("langstats: {warning}");
+            }
+        } else {
+            eprintln!(
+                "langstats: {} scan warning(s); first: {}",
+                result.warnings.len() + result.skipped_warnings as usize,
+                result.warnings[0]
+            );
+        }
     }
     if cli.fail_on_empty && report.summary.total_bytes == 0 {
         std::process::exit(1);

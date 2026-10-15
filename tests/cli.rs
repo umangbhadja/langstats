@@ -31,3 +31,20 @@ fn invalid_directory_fails_cleanly() -> Result<(), Box<dyn std::error::Error>> {
     assert!(String::from_utf8_lossy(&output.stderr).contains("not a directory"));
     Ok(())
 }
+
+#[test]
+fn empty_policy_and_numeric_validation() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = tempfile::tempdir()?;
+    let empty = Command::new(env!("CARGO_BIN_EXE_langstats"))
+        .arg("--fail-on-empty")
+        .arg(dir.path())
+        .output()?;
+    assert_eq!(empty.status.code(), Some(1));
+    let invalid = Command::new(env!("CARGO_BIN_EXE_langstats"))
+        .args(["--threads", "0"])
+        .arg(dir.path())
+        .output()?;
+    assert_eq!(invalid.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&invalid.stderr).contains("--threads"));
+    Ok(())
+}

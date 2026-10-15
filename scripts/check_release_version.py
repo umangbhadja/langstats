@@ -4,8 +4,9 @@
 import pathlib
 import re
 import sys
+import os
 
-tag = sys.argv[1] if len(sys.argv) > 1 else ""
+tag = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("RELEASE_TAG", "")
 manifest = pathlib.Path("Cargo.toml").read_text()
 package = manifest.split("[package]", 1)[1].split("\n[", 1)[0]
 match = re.search(r'^version\s*=\s*"([^"]+)"', package, re.MULTILINE)

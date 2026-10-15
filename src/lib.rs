@@ -2,9 +2,9 @@
 
 use std::path::{Path, PathBuf};
 
-pub mod attributes;
-pub mod detection;
-pub mod metadata;
+mod attributes;
+mod detection;
+mod metadata;
 pub mod output;
 pub mod scanner;
 
