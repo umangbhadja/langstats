@@ -27,18 +27,16 @@ Numbers above illustrate output shape; actual results depend on directory.
 
 ## Install
 
-Release binaries will appear at [GitHub Releases](https://github.com/umangbhadja/langstats/releases)
-after first publication. No release has been published yet. Build from source:
+No release has been published yet. From a checkout of this repository, build
+from source:
 
 ```sh
-git clone https://github.com/umangbhadja/langstats.git
-cd langstats
 cargo build --release --locked
 ./target/release/langstats .
 ```
 
-Stable Rust 1.85 or newer is required. Windows binary is
-`target/release/langstats.exe`.
+Stable Rust 1.85 or newer is required. In PowerShell on Windows, run
+`.\target\release\langstats.exe .` after building.
 
 ## Use
 
@@ -99,10 +97,11 @@ symlinks are skipped. Relevant `.gitattributes` overrides include
 CI is configured for macOS ARM64/x64, Linux ARM64/x64, and Windows ARM64/x64.
 macOS ARM64 and x64 builds and tests passed locally (x64 through Rosetta);
 CI has not run. Linux and Windows remain unverified on native hosts.
-The 34 checked-in fixtures matched pinned GitHub Linguist v9.7.0 locally.
-On an Apple M1 MacBook Air, a warmed release scan of a 5,000-file fixture
-took 0.044–0.047 s, with peak RSS around 5.1 MB. Filesystem cache state
-was not controlled.
+The 53 checked-in fixtures matched pinned GitHub Linguist v9.7.0 locally;
+this compares nonzero language byte totals for those fixtures only.
+On an Apple M1 MacBook Air, a warmed release scan of a 5,000-file,
+1,000,000-byte fixture took 0.044–0.047 s, with peak RSS around 5.1 MB.
+Filesystem cache state was not controlled.
 See [methodology and all scenarios](docs/performance.md). These figures are
 observations, not guarantees.
 
@@ -110,9 +109,9 @@ observations, not guarantees.
 
 ```sh
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo test --workspace --all-features
-cargo build --release
+cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+cargo test --workspace --all-features --locked
+cargo build --release --locked
 python3 scripts/benchmark.py target/release/langstats
 ```
 
@@ -124,10 +123,8 @@ versioned JSON. `tempfile` is test-only. See [dependency review](docs/dependenci
 
 ## Project
 
-[Issues](https://github.com/umangbhadja/langstats/issues) ·
-[Releases](https://github.com/umangbhadja/langstats/releases) ·
 [Security policy](SECURITY.md) · [Support](SUPPORT.md) · [Changelog](CHANGELOG.md)
 
 Roadmap: broader upstream compatibility corpus, full Git attribute semantics,
-classifier parity, cross-platform CI validation, and measured release binaries.
+classifier parity, and native Linux/Windows CI validation.
 Licensed MIT; bundled Linguist metadata attribution is in `NOTICE`.

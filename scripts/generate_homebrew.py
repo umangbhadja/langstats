@@ -58,7 +58,7 @@ def main():
   end
 
   test do
-    assert_match "langstats", shell_output("#{{bin}}/langstats --version")
+    assert_equal "langstats {version}", shell_output("#{{bin}}/langstats --version").strip
   end
 end
 '''

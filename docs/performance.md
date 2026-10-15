@@ -5,7 +5,9 @@ Build with `cargo build --release`, then run
 
 The script creates deterministic source and binary fixtures in a temporary
 directory. Cases cover small, medium, large, many small, large source, deep,
-many binary, many ignored, cached repeated scan, and one-worker scan.
+many binary, many ignored, a mixed repository, repeated scans, and a
+one-worker scan. Pass the **release** executable as shown above; the script
+does not build it.
 Each case is measured once with wall-clock `perf_counter`; rerun multiple times
 for distribution estimates. Throughput uses `files_scanned` and counted bytes.
 Peak memory is not measured by this portable script. On macOS, measure an
@@ -43,7 +45,8 @@ statistically stable performance claims.
 
 After the compatibility fixes, a separate deterministic fixture under
 `/private/tmp/langstats-release-bench-5000` contained 5,000 Rust files in 50
-directories, each 200 bytes (1,000,000 counted bytes). Five independent
+directories, each 200 bytes (1,000,000 counted bytes = **1 decimal MB**, about
+0.954 MiB). This matches the script's `large` fixture shape. Five independent
 processes ran `target/release/langstats --json` with `/usr/bin/time -l` and a
 Python `perf_counter` around the process. Peak RSS is macOS's
 `maximum resident set size`. The first launch below was slower; filesystem
@@ -61,3 +64,26 @@ measurement.
 The scanner reads at most an 8 KiB prefix per file; counted bytes/s therefore
 does not mean disk read throughput. The attributes prepass walks paths a second
 time; no change was justified by these local measurements.
+
+## Mixed repository workload
+
+`scripts/benchmark.py` now creates a second reproducible workload: 812 physical
+files (964,232 bytes), including 380 counted Rust, Python, JavaScript, CSS, and
+HTML files with varied sizes; 60 Markdown files, 40 binary files, 30 vendored
+files, and 300 files ignored by root or nested `.gitignore` rules. The scan
+reports 510 visited files and 577,440 counted source bytes. Recreate the
+fixture at a new or empty path for direct memory measurement with:
+
+```sh
+python3 scripts/benchmark.py target/release/langstats --mixed-fixture /tmp/langstats-mixed
+/usr/bin/time -l target/release/langstats --json /tmp/langstats-mixed
+```
+
+On the same Apple M1 host and release binary, a full benchmark script run
+measured the mixed fixture's first scan at 0.010222 s (49,891 visited files/s)
+and immediate repeat at 0.010003 s (50,986 visited files/s). A separate series
+using `/usr/bin/time -l` measured 0.020654, 0.009812, and 0.009726 s, with
+peak RSS of 5,062,656, 5,177,344, and 5,144,576 bytes respectively. These
+small samples include process startup and measurement overhead. Neither series
+controls filesystem cache or background load; the first run is **not** a
+cold-cache result.

@@ -6,4 +6,8 @@
   documented JSON v1, attribute subset, and local benchmark harness.
 - Cross-platform CI and release workflow prepared; no release published.
 - Correct HTML and PHP/Hack detection against pinned Linguist v9.7.0;
-  34 local comparison fixtures now match.
+  53 local comparison fixtures now match, including ambiguous `node` shebangs
+  and minified-file exclusion interactions.
+- Pin GitHub Actions revisions and add a mixed-repository release benchmark.
+- Make grouped-language colors and capped warning lists deterministic across
+  parallel scans.

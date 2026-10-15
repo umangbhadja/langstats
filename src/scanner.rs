@@ -62,9 +62,14 @@ impl ScanResult {
     }
 
     fn warn(&mut self, warning: String) {
-        if self.warnings.len() < 100 {
-            self.warnings.push(warning);
-        } else {
+        let index = self.warnings.binary_search(&warning).unwrap_or_else(|i| i);
+        if index >= 100 {
+            self.skipped_warnings = self.skipped_warnings.saturating_add(1);
+            return;
+        }
+        self.warnings.insert(index, warning);
+        if self.warnings.len() > 100 {
+            self.warnings.pop();
             self.skipped_warnings = self.skipped_warnings.saturating_add(1);
         }
     }
@@ -159,7 +164,6 @@ pub fn scan(root: &Path, options: &ScanOptions) -> Result<ScanResult, Error> {
             }
         }
     });
-    result.warnings.sort();
     Ok(result)
 }
 
@@ -219,7 +223,10 @@ fn process_file(task: Task, root: &Path, attributes: &Attributes, result: &mut S
     count.files = count.files.saturating_add(1);
     count.bytes = count.bytes.saturating_add(task.size);
     if count.color.is_none() {
-        count.color = language.color.clone();
+        count.color = metadata::registry()
+            .by_name(name)
+            .map(|group| group.color.clone())
+            .unwrap_or_else(|| language.color.clone());
     }
     result.files_counted = result.files_counted.saturating_add(1);
 }
@@ -355,6 +362,47 @@ mod tests {
             Some(9)
         );
         Ok(())
+    }
+
+    #[test]
+    fn grouped_language_uses_group_color() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = tempfile::tempdir()?;
+        std::fs::write(dir.path().join("first.mligo"), "let x = 1\n")?;
+        std::fs::write(dir.path().join("second.ligo"), "let x = 2\n")?;
+        let result = scan(
+            dir.path(),
+            &ScanOptions {
+                threads: 2,
+                ..ScanOptions::default()
+            },
+        )?;
+        let group = result.languages.get("LigoLANG").expect("group present");
+        assert_eq!(group.files, 2);
+        assert_eq!(group.color.as_deref(), Some("#0e74ff"));
+        Ok(())
+    }
+
+    #[test]
+    fn warnings_keep_smallest_paths_across_worker_merges() {
+        let mut first = ScanResult::default();
+        let mut second = ScanResult::default();
+        for index in (120..240).rev() {
+            first.warn(format!("warning-{index:03}"));
+        }
+        for index in (0..120).rev() {
+            second.warn(format!("warning-{index:03}"));
+        }
+        first.merge(second);
+        assert_eq!(first.warnings.len(), 100);
+        assert_eq!(
+            first.warnings.first().map(String::as_str),
+            Some("warning-000")
+        );
+        assert_eq!(
+            first.warnings.last().map(String::as_str),
+            Some("warning-099")
+        );
+        assert_eq!(first.skipped_warnings, 140);
     }
 
     #[cfg(windows)]
