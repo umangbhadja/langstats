@@ -1,7 +1,7 @@
 # Contributing
 
-When the repository issue tracker is public, open an issue for behavior
-changes. Keep patches focused; add a fixture for detection changes. Run:
+Open an issue for behavior changes. Keep patches focused; add a fixture for
+detection changes. Run:
 
 ```sh
 cargo fmt --all -- --check

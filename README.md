@@ -27,8 +27,7 @@ Numbers above illustrate output shape; actual results depend on directory.
 
 ## Install
 
-No release has been published yet. From a checkout of this repository, build
-from source:
+From a checkout of this repository, build from source:
 
 ```sh
 cargo build --release --locked
@@ -37,6 +36,11 @@ cargo build --release --locked
 
 Stable Rust 1.85 or newer is required. In PowerShell on Windows, run
 `.\target\release\langstats.exe .` after building.
+
+For a published version, download the archive for your platform from
+[GitHub Releases](https://github.com/umangbhadja/langstats/releases), verify
+its matching `.sha256` file, and extract it. Each archive includes the
+executable, `LICENSE`, and `NOTICE`.
 
 ## Use
 
@@ -94,9 +98,11 @@ symlinks are skipped. Relevant `.gitattributes` overrides include
 
 ## Platforms and performance
 
-CI is configured for macOS ARM64/x64, Linux ARM64/x64, and Windows ARM64/x64.
-macOS ARM64 and x64 builds and tests passed locally (x64 through Rosetta);
-CI has not run. Linux and Windows remain unverified on native hosts.
+CI checks macOS ARM64/x64, Linux ARM64/x64, and Windows ARM64/x64.
+[PR #1](https://github.com/umangbhadja/langstats/pull/1) reported passing
+quality jobs on all six native runners. macOS ARM64 and x64 builds and tests
+also passed locally (x64 through Rosetta). Tagged release packaging and
+installation on Linux and Windows remain unverified.
 The 53 checked-in fixtures matched pinned GitHub Linguist v9.7.0 locally;
 this compares nonzero language byte totals for those fixtures only.
 On an Apple M1 MacBook Air, a warmed release scan of a 5,000-file,
@@ -126,5 +132,5 @@ versioned JSON. `tempfile` is test-only. See [dependency review](docs/dependenci
 [Security policy](SECURITY.md) · [Support](SUPPORT.md) · [Changelog](CHANGELOG.md)
 
 Roadmap: broader upstream compatibility corpus, full Git attribute semantics,
-classifier parity, and native Linux/Windows CI validation.
+and classifier parity.
 Licensed MIT; bundled Linguist metadata attribution is in `NOTICE`.
