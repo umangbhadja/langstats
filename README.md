@@ -40,7 +40,8 @@ curl -fsSL https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/
 The installer verifies the release archive's SHA-256, places `langstats` in
 `~/.local/bin`, and places `LICENSE` and `NOTICE` in `~/.local/share/langstats`.
 Add `~/.local/bin` to your `PATH` if prompted. It requires `curl`, `tar`, and
-either `shasum` or `sha256sum`.
+either `shasum` or `sha256sum`. Interactive terminals show download and file
+installation progress.
 
 On Windows (x64 or ARM64), run in PowerShell:
 
@@ -50,7 +51,8 @@ irm https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/install
 
 This verifies the release ZIP's SHA-256, installs `langstats.exe`, `LICENSE`,
 and `NOTICE` under `%LOCALAPPDATA%\Programs\langstats`, and adds that directory
-to your user `PATH`.
+to your user `PATH`. It requires `curl.exe`; download and file installation
+progress appear in PowerShell.
 
 ## Uninstall
 

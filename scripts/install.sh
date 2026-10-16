@@ -8,11 +8,18 @@ fail() {
   exit 1
 }
 
+download_once() {
+  if [ "$3" = 'release archive' ] && [ -t 2 ]; then
+    curl -fL --progress-bar --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 "$1" -o "$2"
+  else
+    curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 "$1" -o "$2"
+  fi
+}
+
 download() {
-  if ! curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 "$1" -o "$2"; then
+  if ! download_once "$@"; then
     printf 'langstats installer: retrying %s download\n' "$3" >&2
-    curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 "$1" -o "$2" \
-      || fail "could not download $3"
+    download_once "$@" || fail "could not download $3"
   fi
 }
 
@@ -93,8 +100,11 @@ else
 fi
 mkdir -p "$bin_dir" "$share_dir"
 install -m 0644 "$tmp_dir/LICENSE" "$share_dir/LICENSE"
+printf 'Installing [###.......] 1/3\n' >&2
 install -m 0644 "$tmp_dir/NOTICE" "$share_dir/NOTICE"
+printf 'Installing [######....] 2/3\n' >&2
 install -m 0755 "$tmp_dir/langstats" "$bin_dir/langstats"
+printf 'Installing [##########] 3/3\n' >&2
 
 printf '%s langstats %s to %s\n' "$action" "${tag#v}" "$bin_dir/langstats"
 case ":${PATH:-}:" in
