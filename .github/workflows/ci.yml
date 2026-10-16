@@ -44,6 +44,10 @@ jobs:
           sh scripts/install.sh
           "$HOME/.local/bin/langstats" --version
           test -f "$HOME/.local/share/langstats/NOTICE"
+          sh scripts/uninstall.sh
+          test ! -e "$HOME/.local/bin/langstats"
+          test ! -e "$HOME/.local/share/langstats/NOTICE"
+          sh scripts/uninstall.sh
       - name: Windows installer smoke test
         if: runner.os == 'Windows'
         shell: pwsh
@@ -56,3 +60,8 @@ jobs:
           & (Join-Path $env:LOCALAPPDATA 'Programs\langstats\langstats.exe') --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\langstats\NOTICE'))) { throw 'NOTICE missing' }
+          .\scripts\uninstall.ps1
+          if (Test-Path (Join-Path $installDir 'langstats.exe')) { throw 'binary still installed' }
+          if (Test-Path (Join-Path $installDir 'NOTICE')) { throw 'NOTICE still installed' }
+          if (@([Environment]::GetEnvironmentVariable('Path', 'User') -split ';' | Where-Object { $_.TrimEnd([char]'\') -eq $installDir.TrimEnd([char]'\') }).Count -ne 0) { throw 'user PATH still contains langstats' }
+          .\scripts\uninstall.ps1
