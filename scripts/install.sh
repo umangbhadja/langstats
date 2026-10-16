@@ -51,7 +51,11 @@ fi
 
 printf 'Finding latest release...\n' >&2
 latest_url=$(curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 \
-  -o /dev/null -w '%{url_effective}' "$repo/releases/latest") || fail 'could not find latest release'
+  -o /dev/null -w '%{url_effective}' "$repo/releases/latest") || {
+  printf 'langstats installer: retrying latest release lookup\n' >&2
+  latest_url=$(curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 \
+    -o /dev/null -w '%{url_effective}' "$repo/releases/latest") || fail 'could not find latest release'
+}
 case "$latest_url" in
   "$repo/releases/tag/v"*) tag=${latest_url##*/} ;;
   *) fail 'unexpected latest release URL' ;;
