@@ -16,9 +16,17 @@
         default { throw 'langstats installer: unsupported CPU architecture' }
     }
 
-    $headers = @{ Accept = 'application/vnd.github+json'; 'User-Agent' = 'langstats-installer' }
-    $release = Invoke-RestMethod -Uri 'https://api.github.com/repos/umangbhadja/langstats/releases/latest' -Headers $headers
-    $tag = [string]$release.tag_name
+    # Follow the release-page redirect instead of the rate-limited REST API.
+    $latest = Invoke-WebRequest -Uri "$repo/releases/latest" -UseBasicParsing
+    $latestUri = $latest.BaseResponse.ResponseUri
+    if (-not $latestUri) {
+        $latestUri = $latest.BaseResponse.RequestMessage.RequestUri
+    }
+    $prefix = "$repo/releases/tag/"
+    if (-not $latestUri -or -not $latestUri.AbsoluteUri.StartsWith($prefix, [StringComparison]::Ordinal)) {
+        throw 'langstats installer: unexpected latest release URL'
+    }
+    $tag = $latestUri.AbsoluteUri.Substring($prefix.Length)
     if ($tag -notmatch '^v[0-9][A-Za-z0-9._-]*$') {
         throw 'langstats installer: unexpected release tag'
     }
