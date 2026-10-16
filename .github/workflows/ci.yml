@@ -34,3 +34,25 @@ jobs:
         run: cargo test --workspace --all-features --locked
       - name: Release build
         run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Unix installer smoke test
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          export HOME="$RUNNER_TEMP/langstats-installer-home"
+          mkdir -p "$HOME/.local/bin"
+          printf '#!/bin/sh\nexit 42\n' > "$HOME/.local/bin/langstats"
+          sh scripts/install.sh
+          "$HOME/.local/bin/langstats" --version
+          test -f "$HOME/.local/share/langstats/NOTICE"
+      - name: Windows installer smoke test
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'langstats-installer-home'
+          $installDir = Join-Path $env:LOCALAPPDATA 'Programs\langstats'
+          New-Item -ItemType Directory -Path $installDir -Force | Out-Null
+          [IO.File]::WriteAllText((Join-Path $installDir 'langstats.exe'), 'old binary')
+          .\scripts\install.ps1
+          & (Join-Path $env:LOCALAPPDATA 'Programs\langstats\langstats.exe') --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\langstats\NOTICE'))) { throw 'NOTICE missing' }

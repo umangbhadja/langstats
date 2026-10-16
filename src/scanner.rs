@@ -3,7 +3,6 @@
 use crate::{Error, validate_path};
 use crate::{attributes::Attributes, detection, metadata};
 use ignore::WalkBuilder;
-use serde::Serialize;
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Read;
@@ -27,7 +26,7 @@ impl Default for ScanOptions {
     }
 }
 
-#[derive(Debug, Default, Serialize)]
+#[derive(Debug, Default)]
 pub struct Counts {
     pub bytes: u64,
     pub files: u64,

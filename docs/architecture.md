@@ -1,4 +1,4 @@
-# Implementation plan
+# Architecture
 
 `langstats` scans local working trees offline and reports source-language bytes.
 GitHub Linguist is the compatibility target, not a claim of exact parity.
@@ -23,18 +23,13 @@ GitHub Linguist is the compatibility target, not a claim of exact parity.
 4. CI checks macOS, Linux, Windows; release workflow creates archives and checksums
    without publishing from a local development session.
 
-## Feature commits
-
-Plan; Rust foundation; metadata import; scanner; detection and attributes;
-aggregation and output; compatibility fixtures; benchmark and tuning; CI and
-release assets; documentation and audit. Commit each verified feature locally.
-
 ## Current constraints
 
 The 53 checked-in fixtures match pinned Linguist v9.7.0, but its full classifier
 and attribute behavior remain outside this corpus. PR #1 reported passing
-quality jobs on native Linux and Windows runners. Tagged release archives and
-installation on those systems remain unverified.
+quality jobs on native Linux and Windows runners. Published `v0.1.0` archives
+passed local checksum and contents verification. CI contains installer update
+smoke tests for all six runners; consult the current workflow run for results.
 
 ## Current implementation
 
