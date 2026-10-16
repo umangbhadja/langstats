@@ -99,7 +99,7 @@ JSON example:
 ```json
 {
   "schema_version": 1,
-  "tool": {"name": "langstats", "version": "0.1.0"},
+  "tool": {"name": "langstats", "version": "0.2.0"},
   "repository": {"path": ".", "name": "."},
   "summary": {"files_scanned": 1, "files_counted": 1, "total_bytes": 13, "language_count": 1, "warnings_truncated": 0},
   "languages": [{"name": "Rust", "bytes": 13, "percentage": 100.0, "files": 1, "color": "#dea584"}],
