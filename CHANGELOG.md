@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Add one-line, SHA-256-verified installers for macOS, Linux, and Windows.
+  Re-running an installer updates an existing installation.
+- Add one-line uninstallers for all supported platforms. The Windows
+  uninstaller also removes the user `PATH` entry.
+- Show Unix installer download progress and bound stalled downloads; avoid
+  the unauthenticated GitHub API rate limit in the Windows installer.
+
 ## 0.1.0
 
 - Initial offline Rust CLI, pinned Linguist metadata, bounded parallel scan,

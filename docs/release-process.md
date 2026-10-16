@@ -4,9 +4,11 @@ A `v<version>` tag triggers the release workflow, including publication of a
 public GitHub Release. Do not push a tag until the release is approved.
 
 1. Run format, Clippy, tests, metadata consistency, and release build locally.
-2. Confirm `Cargo.toml` version matches the planned tag; update the changelog
-   and commit. For `v0.1.0`, the Cargo version is already `0.1.0`.
-3. Create and push a matching `v<version>` tag **only when release is approved**.
+2. Confirm `Cargo.toml` and `Cargo.lock` versions match the planned tag;
+   update the changelog and commit before creating the tag.
+3. After the release commit is merged, create the matching `v<version>` tag
+   from up-to-date `main`, **only when release is approved**. Do not tag a
+   feature branch or pull request head.
 4. `.github/workflows/release.yml` tests six native runners, builds archives
    containing binary, `LICENSE`, and `NOTICE`, writes per-archive SHA-256 files,
    verifies contents, writes `SHA256SUMS`,
