@@ -8,6 +8,14 @@ fail() {
   exit 1
 }
 
+download() {
+  if ! curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 "$1" -o "$2"; then
+    printf 'langstats installer: retrying %s download\n' "$3" >&2
+    curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 "$1" -o "$2" \
+      || fail "could not download $3"
+  fi
+}
+
 command -v curl >/dev/null 2>&1 || fail 'curl is required'
 command -v tar >/dev/null 2>&1 || fail 'tar is required'
 command -v install >/dev/null 2>&1 || fail 'install is required'
@@ -34,7 +42,9 @@ else
   fail 'sha256sum or shasum is required'
 fi
 
-latest_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' "$repo/releases/latest") || fail 'could not find latest release'
+printf 'Finding latest release...\n' >&2
+latest_url=$(curl -fsSL --connect-timeout 10 --max-time 60 --speed-limit 1024 --speed-time 15 \
+  -o /dev/null -w '%{url_effective}' "$repo/releases/latest") || fail 'could not find latest release'
 case "$latest_url" in
   "$repo/releases/tag/v"*) tag=${latest_url##*/} ;;
   *) fail 'unexpected latest release URL' ;;
@@ -54,9 +64,12 @@ tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/langstats-install.XXXXXXXX") || fail 'could
 trap 'rm -rf "$tmp_dir"' 0
 
 url="$repo/releases/download/$tag/$archive"
-curl -fsSL "$url" -o "$tmp_dir/$archive" || fail 'could not download release archive'
-curl -fsSL "$url.sha256" -o "$tmp_dir/$archive.sha256" || fail 'could not download checksum'
+printf 'Downloading %s...\n' "$archive" >&2
+download "$url" "$tmp_dir/$archive" 'release archive'
+printf 'Downloading checksum...\n' >&2
+download "$url.sha256" "$tmp_dir/$archive.sha256" checksum
 
+printf 'Verifying SHA-256...\n' >&2
 read -r expected checksum_name < "$tmp_dir/$archive.sha256" || fail 'invalid checksum file'
 [ "$checksum_name" = "$archive" ] || fail 'checksum file names a different archive'
 if [ "$hash_command" = shasum ]; then
