@@ -1,5 +1,6 @@
 & {
     $ErrorActionPreference = 'Stop'
+    $ProgressPreference = 'Continue'
     $repo = 'https://github.com/umangbhadja/langstats'
 
     if ($env:OS -ne 'Windows_NT') {
@@ -7,6 +8,9 @@
     }
     if (-not $env:LOCALAPPDATA) {
         throw 'langstats installer: LOCALAPPDATA is required'
+    }
+    if (-not (Get-Command curl.exe -ErrorAction SilentlyContinue)) {
+        throw 'langstats installer: curl.exe is required'
     }
 
     $processor = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
@@ -39,8 +43,12 @@
         $url = "$repo/releases/download/$tag/$archive"
         $archivePath = Join-Path $tempDir $archive
         $checksumPath = "$archivePath.sha256"
-        Invoke-WebRequest -Uri $url -OutFile $archivePath -UseBasicParsing
-        Invoke-WebRequest -Uri "$url.sha256" -OutFile $checksumPath -UseBasicParsing
+        Write-Host "Downloading $archive..."
+        & curl.exe -fL --progress-bar --connect-timeout 10 --max-time 60 -o $archivePath $url
+        if ($LASTEXITCODE -ne 0) { throw 'langstats installer: could not download release archive' }
+        Write-Host 'Downloading checksum...'
+        & curl.exe -fsSL --connect-timeout 10 --max-time 60 -o $checksumPath "$url.sha256"
+        if ($LASTEXITCODE -ne 0) { throw 'langstats installer: could not download checksum' }
 
         $checksumLine = (Get-Content -LiteralPath $checksumPath -Raw).Trim()
         $checksumPattern = '^([0-9a-fA-F]{64})\s+' + [regex]::Escape($archive) + '$'
@@ -65,9 +73,13 @@
         $binaryPath = Join-Path $installDir 'langstats.exe'
         $action = if (Test-Path -LiteralPath $binaryPath -PathType Leaf) { 'Updated' } else { 'Installed' }
         New-Item -ItemType Directory -Path $installDir -Force | Out-Null
-        foreach ($file in 'langstats.exe', 'LICENSE', 'NOTICE') {
+        $files = @('langstats.exe', 'LICENSE', 'NOTICE')
+        for ($index = 0; $index -lt $files.Count; $index++) {
+            $file = $files[$index]
             Copy-Item -LiteralPath (Join-Path $contents $file) -Destination (Join-Path $installDir $file) -Force
+            Write-Progress -Activity 'Installing langstats' -Status "$($index + 1)/$($files.Count) files" -PercentComplete ([int](100 * ($index + 1) / $files.Count))
         }
+        Write-Progress -Activity 'Installing langstats' -Completed
 
         $normalized = $installDir.TrimEnd([char]'\')
         $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
