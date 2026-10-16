@@ -12,14 +12,9 @@ public GitHub Release. Do not push a tag until the release is approved.
    verifies contents, writes `SHA256SUMS`,
    and creates a GitHub Release. Verify its actual result after tagging.
 5. Download all archives locally; run `python scripts/verify_release.py dist`.
-6. Generate Homebrew formula with
-   `python scripts/generate_homebrew.py <version> dist Formula/langstats.rb`.
-   Review URLs and checksums, then run `brew audit --strict Formula/langstats.rb`,
-   `brew install ./Formula/langstats.rb`, and `brew test langstats` after
-   release assets are live. Formula generation requires all four Unix archives.
-   Generator URLs, checksums, target selection, and `ruby -c` passed with
-   synthetic fixtures;
-   `brew audit`, install, and test have not run.
+6. Verify the one-line installers in `README.md` on all six supported platforms.
+   These are the supported install and update method. Re-run each against an
+   existing installation to confirm it updates.
 
 Local package test:
 
@@ -65,20 +60,12 @@ The release workflow injects `${{ github.ref_name }}` as `RELEASE_TAG` and
 `v0.1.0` passed locally and `v0.2.0` was rejected. `package_release.py`
 uses `.tar.gz` with `langstats` on Unix and `.zip` with `langstats.exe` on
 Windows. `verify_release.py` checks each archive's SHA-256 and the expected
-binary, `LICENSE`, and `NOTICE` members. The final publish job still needs a
-real six-target release run and inspection of downloaded assets.
+binary, `LICENSE`, and `NOTICE` members. The subsequent `v0.1.0` release run
+published all six archives; downloaded assets passed local verification.
 
-The Homebrew generator chooses ARM64 or Intel macOS and Linux URLs using the
-same archive names as the workflow. It verifies each local SHA-256 before
-writing a formula with MIT metadata and a `--version` test. Four-architecture
-syntax and URL construction passed with two real macOS archives plus two
-synthetic Linux entries; the generated macOS SHA-256 values matched the real
-local archives. There are no real Linux release archives yet. The configured
-GitHub repository returned HTTP 404 to this environment on 2026-10-13, before
-the repository became public. After publication, download all six real assets, verify
-`SHA256SUMS`, generate the formula from the four real Unix archives, run
-`ruby -c`, `brew audit --strict`, and install and test it on both macOS
-architectures and Linux where available.
+The repository returned HTTP 404 to this environment on 2026-10-13, before
+it became public. After each release, download all six real assets, verify
+`SHA256SUMS`, and test both installers on their supported runners.
 
 ## CI after public repository merge
 

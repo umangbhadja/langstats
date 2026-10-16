@@ -25,22 +25,32 @@ Ruby                 1.92%  █
 
 Numbers above illustrate output shape; actual results depend on directory.
 
-## Install
+## Install or update
 
-From a checkout of this repository, build from source:
+The one-line installer is the supported installation and update method. Re-run
+the same command to replace an existing installation with the latest published
+release; no separate update command is needed.
+
+On macOS or Linux (ARM64 or x86-64):
 
 ```sh
-cargo build --release --locked
-./target/release/langstats .
+curl -fsSL https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/install.sh | sh
 ```
 
-Stable Rust 1.85 or newer is required. In PowerShell on Windows, run
-`.\target\release\langstats.exe .` after building.
+The installer verifies the release archive's SHA-256, places `langstats` in
+`~/.local/bin`, and places `LICENSE` and `NOTICE` in `~/.local/share/langstats`.
+Add `~/.local/bin` to your `PATH` if prompted. It requires `curl`, `tar`, and
+either `shasum` or `sha256sum`.
 
-For a published version, download the archive for your platform from
-[GitHub Releases](https://github.com/umangbhadja/langstats/releases), verify
-its matching `.sha256` file, and extract it. Each archive includes the
-executable, `LICENSE`, and `NOTICE`.
+On Windows (x64 or ARM64), run in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/install.ps1 | iex
+```
+
+This verifies the release ZIP's SHA-256, installs `langstats.exe`, `LICENSE`,
+and `NOTICE` under `%LOCALAPPDATA%\Programs\langstats`, and adds that directory
+to your user `PATH`.
 
 ## Use
 
@@ -101,8 +111,10 @@ symlinks are skipped. Relevant `.gitattributes` overrides include
 CI checks macOS ARM64/x64, Linux ARM64/x64, and Windows ARM64/x64.
 [PR #1](https://github.com/umangbhadja/langstats/pull/1) reported passing
 quality jobs on all six native runners. macOS ARM64 and x64 builds and tests
-also passed locally (x64 through Rosetta). Tagged release packaging and
-installation on Linux and Windows remain unverified.
+also passed locally (x64 through Rosetta). The `v0.1.0` release workflow
+published six archives; their checksums and contents passed local verification.
+The published macOS ARM64 executable ran locally. CI includes installer smoke
+tests on all six native runners; check the current workflow run for their results.
 The 53 checked-in fixtures matched pinned GitHub Linguist v9.7.0 locally;
 this compares nonzero language byte totals for those fixtures only.
 On an Apple M1 MacBook Air, a warmed release scan of a 5,000-file,
@@ -112,6 +124,8 @@ See [methodology and all scenarios](docs/performance.md). These figures are
 observations, not guarantees.
 
 ## Develop
+
+Building from source for development requires stable Rust 1.85 or newer.
 
 ```sh
 cargo fmt --all -- --check
