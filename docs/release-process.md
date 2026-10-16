@@ -14,7 +14,8 @@ public GitHub Release. Do not push a tag until the release is approved.
 5. Download all archives locally; run `python scripts/verify_release.py dist`.
 6. Verify the one-line installers in `README.md` on all six supported platforms.
    These are the supported install and update method. Re-run each against an
-   existing installation to confirm it updates.
+   existing installation to confirm it updates. Verify the one-line uninstall
+   commands remove the installed files and Windows user `PATH` entry.
 
 Local package test:
 

@@ -52,6 +52,24 @@ This verifies the release ZIP's SHA-256, installs `langstats.exe`, `LICENSE`,
 and `NOTICE` under `%LOCALAPPDATA%\Programs\langstats`, and adds that directory
 to your user `PATH`.
 
+## Uninstall
+
+On macOS or Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/uninstall.sh | sh
+```
+
+On Windows, run in PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/uninstall.ps1 | iex
+```
+
+These remove only the installed binary, `LICENSE`, and `NOTICE`. They leave
+other files in the installation directories untouched. The Windows command
+also removes the install directory from your user `PATH`.
+
 ## Use
 
 ```sh
