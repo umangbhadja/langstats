@@ -1,6 +1,5 @@
 & {
     $ErrorActionPreference = 'Stop'
-    $ProgressPreference = 'Continue'
     $repo = 'https://github.com/umangbhadja/langstats'
 
     if ($env:OS -ne 'Windows_NT') {
@@ -9,18 +8,19 @@
     if (-not $env:LOCALAPPDATA) {
         throw 'langstats installer: LOCALAPPDATA is required'
     }
-    if (-not (Get-Command curl.exe -ErrorAction SilentlyContinue)) {
-        throw 'langstats installer: curl.exe is required'
-    }
-
-    $processor = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
-    $target = switch ([int]$processor.Architecture) {
-        9  { 'x86_64-pc-windows-msvc' }
-        12 { 'aarch64-pc-windows-msvc' }
-        default { throw 'langstats installer: unsupported CPU architecture' }
+    $installDir = Join-Path $env:LOCALAPPDATA 'Programs\langstats'
+    $binaryPath = Join-Path $installDir 'langstats.exe'
+    $installedVersion = ''
+    if (Test-Path -LiteralPath $binaryPath -PathType Leaf) {
+        try {
+            $installedVersion = (& $binaryPath --version 2>$null | Out-String).Trim()
+            if ($LASTEXITCODE -ne 0) { $installedVersion = '' }
+        }
+        catch { $installedVersion = '' }
     }
 
     # Follow the release-page redirect instead of the rate-limited REST API.
+    Write-Host 'Checking langstats...'
     $latest = Invoke-WebRequest -Uri "$repo/releases/latest" -UseBasicParsing
     $latestUri = $latest.BaseResponse.ResponseUri
     if (-not $latestUri) {
@@ -35,6 +35,24 @@
         throw 'langstats installer: unexpected release tag'
     }
 
+    $version = $tag.Substring(1)
+    if ($installedVersion -eq "langstats $version" -and
+        (Test-Path -LiteralPath (Join-Path $installDir 'LICENSE') -PathType Leaf) -and
+        (Test-Path -LiteralPath (Join-Path $installDir 'NOTICE') -PathType Leaf)) {
+        Write-Host "langstats $version is already up to date at $binaryPath"
+        return
+    }
+
+    if (-not (Get-Command curl.exe -ErrorAction SilentlyContinue)) {
+        throw 'langstats installer: curl.exe is required'
+    }
+    $processor = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
+    $target = switch ([int]$processor.Architecture) {
+        9  { 'x86_64-pc-windows-msvc' }
+        12 { 'aarch64-pc-windows-msvc' }
+        default { throw 'langstats installer: unsupported CPU architecture' }
+    }
+
     $name = "langstats-$tag-$target"
     $archive = "$name.zip"
     $tempDir = Join-Path ([IO.Path]::GetTempPath()) ('langstats-install-' + [guid]::NewGuid().ToString('N'))
@@ -43,10 +61,9 @@
         $url = "$repo/releases/download/$tag/$archive"
         $archivePath = Join-Path $tempDir $archive
         $checksumPath = "$archivePath.sha256"
-        Write-Host "Downloading $archive..."
+        Write-Host "Downloading langstats $version..."
         & curl.exe -fL --progress-bar --connect-timeout 10 --max-time 60 -o $archivePath $url
         if ($LASTEXITCODE -ne 0) { throw 'langstats installer: could not download release archive' }
-        Write-Host 'Downloading checksum...'
         & curl.exe -fsSL --connect-timeout 10 --max-time 60 -o $checksumPath "$url.sha256"
         if ($LASTEXITCODE -ne 0) { throw 'langstats installer: could not download checksum' }
 
@@ -69,17 +86,11 @@
             }
         }
 
-        $installDir = Join-Path $env:LOCALAPPDATA 'Programs\langstats'
-        $binaryPath = Join-Path $installDir 'langstats.exe'
         $action = if (Test-Path -LiteralPath $binaryPath -PathType Leaf) { 'Updated' } else { 'Installed' }
         New-Item -ItemType Directory -Path $installDir -Force | Out-Null
-        $files = @('langstats.exe', 'LICENSE', 'NOTICE')
-        for ($index = 0; $index -lt $files.Count; $index++) {
-            $file = $files[$index]
+        foreach ($file in 'langstats.exe', 'LICENSE', 'NOTICE') {
             Copy-Item -LiteralPath (Join-Path $contents $file) -Destination (Join-Path $installDir $file) -Force
-            Write-Progress -Activity 'Installing langstats' -Status "$($index + 1)/$($files.Count) files" -PercentComplete ([int](100 * ($index + 1) / $files.Count))
         }
-        Write-Progress -Activity 'Installing langstats' -Completed
 
         $normalized = $installDir.TrimEnd([char]'\')
         $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
@@ -92,7 +103,7 @@
         if ($processEntries -notcontains $normalized) {
             $env:Path = if ($env:Path) { "$env:Path;$installDir" } else { $installDir }
         }
-        Write-Host "$action langstats $($tag.Substring(1)) to $binaryPath"
+        Write-Host "$action langstats $version to $binaryPath"
     }
     finally {
         Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
