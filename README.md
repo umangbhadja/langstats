@@ -28,8 +28,9 @@ Numbers above illustrate output shape; actual results depend on directory.
 ## Install or update
 
 The one-line installer is the supported installation and update method. Re-run
-the same command to replace an existing installation with the latest published
-release; no separate update command is needed.
+the same command to check for the latest published release. It downloads and
+updates an older installation; if the installed version is current and its
+bundled files are present, it leaves the installation untouched.
 
 On macOS or Linux (ARM64 or x86-64):
 
@@ -40,8 +41,9 @@ curl -fsSL https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/
 The installer verifies the release archive's SHA-256, places `langstats` in
 `~/.local/bin`, and places `LICENSE` and `NOTICE` in `~/.local/share/langstats`.
 Add `~/.local/bin` to your `PATH` if prompted. It requires `curl`, `tar`, and
-either `shasum` or `sha256sum`. Interactive terminals show download and file
-installation progress.
+either `shasum` or `sha256sum` when installing or updating. Interactive
+terminals show download progress. SHA-256 verification runs without status
+messages; failures are reported.
 
 On Windows (x64 or ARM64), run in PowerShell:
 
@@ -51,8 +53,9 @@ irm https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/install
 
 This verifies the release ZIP's SHA-256, installs `langstats.exe`, `LICENSE`,
 and `NOTICE` under `%LOCALAPPDATA%\Programs\langstats`, and adds that directory
-to your user `PATH`. It requires `curl.exe`; download and file installation
-progress appear in PowerShell.
+to your user `PATH`. Installing or updating requires `curl.exe`; download
+progress appears in PowerShell. SHA-256 verification runs without status
+messages; failures are reported.
 
 ## Uninstall
 
