@@ -37,6 +37,17 @@ jobs:
         run: cargo test --workspace --all-features --locked
       - name: Release build
         run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Unix installer regression tests
+        if: runner.os != 'Windows'
+        run: python3 scripts/test_install.py
+      - name: Windows installer regression tests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test_install.ps1
+      - name: Windows PowerShell 5.1 installer regression tests
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./scripts/test_install.ps1
       - name: Unix installer smoke test
         if: runner.os != 'Windows'
         shell: bash
@@ -57,7 +68,7 @@ jobs:
           sh scripts/uninstall.sh
       - name: Windows installer smoke test
         if: runner.os == 'Windows'
-        shell: pwsh
+        shell: powershell
         run: |
           $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'langstats-installer-home'
           $installDir = Join-Path $env:LOCALAPPDATA 'Programs\langstats'
