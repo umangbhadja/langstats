@@ -42,8 +42,10 @@ The installer verifies the release archive's SHA-256, places `langstats` in
 `~/.local/bin`, and places `LICENSE` and `NOTICE` in `~/.local/share/langstats`.
 Add `~/.local/bin` to your `PATH` if prompted. It requires `curl`, `tar`, and
 either `shasum` or `sha256sum` when installing or updating. Interactive
-terminals show download progress. SHA-256 verification runs without status
-messages; failures are reported.
+terminals show download progress. The installer checks the release version with
+a HEAD request, downloads the archive and checksum concurrently, and extracts
+the archive once. Elapsed times identify time spent checking the release,
+downloading, verifying SHA-256, and installing; failures are reported.
 
 On Windows (x64 or ARM64), run in PowerShell:
 
@@ -54,8 +56,9 @@ irm https://raw.githubusercontent.com/umangbhadja/langstats/main/scripts/install
 This verifies the release ZIP's SHA-256, installs `langstats.exe`, `LICENSE`,
 and `NOTICE` under `%LOCALAPPDATA%\Programs\langstats`, and adds that directory
 to your user `PATH`. Installing or updating requires `curl.exe`; download
-progress appears in PowerShell. SHA-256 verification runs without status
-messages; failures are reported.
+progress appears in PowerShell. Release lookup uses HEAD, archive and checksum
+downloads run concurrently, and elapsed times appear for each installation stage.
+SHA-256 verification remains required; failures are reported.
 
 ## Uninstall
 
