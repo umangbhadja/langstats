@@ -83,7 +83,7 @@ jobs:
           & (Join-Path $env:LOCALAPPDATA 'Programs\langstats\langstats.exe') --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path (Join-Path $env:LOCALAPPDATA 'Programs\langstats\NOTICE'))) { throw 'NOTICE missing' }
-          # Latest can change between calls; fixed-version skip is tested offline.
+          # Latest can change between calls.
           $recheck = .\scripts\install.ps1 6>&1 | Out-String
           if ($recheck -notmatch 'already up to date|Updated langstats ') { throw 'installer neither skipped nor updated installation' }
           .\scripts\uninstall.ps1
@@ -118,4 +118,6 @@ jobs:
           path: dist
           merge-multiple: true
       - name: Verify candidate release archives
-        run: python scripts/verify_release.py dist
+        run: |
+          python -c 'from pathlib import Path; archives = list(Path("dist").glob("*.tar.gz")) + list(Path("dist").glob("*.zip")); assert len(archives) == 6, f"Expected six platform archives, found {len(archives)}"'
+          python scripts/verify_release.py dist
