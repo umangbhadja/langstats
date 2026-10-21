@@ -16,4 +16,7 @@ remain stable within schema version 1; breaking changes increment `schema_versio
 - `warnings`: up to 100 sorted diagnostics.
 
 Percentage denominator is `summary.total_bytes`; zero total yields 0.0 for every
-language. JSON stdout never contains ANSI codes or diagnostics.
+language. JSON strings use JSON escaping, preserving the supplied paths and diagnostic
+text. Treat decoded values as untrusted text when displaying them in a terminal.
+Reports include local repository paths and warning paths; review or redact
+these fields before sharing reports publicly.

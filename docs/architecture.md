@@ -25,11 +25,12 @@ GitHub Linguist is the compatibility target, not a claim of exact parity.
 
 ## Current constraints
 
-The 53 checked-in fixtures match pinned Linguist v9.7.0, but its full classifier
-and attribute behavior remain outside this corpus. PR #1 reported passing
-quality jobs on native Linux and Windows runners. Published `v0.1.0` archives
-passed local checksum and contents verification. CI contains installer update
-smoke tests for all six runners; consult the current workflow run for results.
+The compatibility corpus covers 53 fixtures; it does not establish full
+classifier or attribute parity. CI defines native Linux, macOS, and Windows
+jobs plus installer checks. Consult current workflow results for validation.
+Attribute files and rules are loaded into memory without a fixed total limit.
+Scan a stable tree: concurrent replacements are not isolated. Descendant
+symlinks are skipped, while a symlink supplied as the root is resolved.
 
 ## Current implementation
 

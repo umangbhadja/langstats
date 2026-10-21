@@ -85,7 +85,9 @@ struct Task {
     size: u64,
 }
 
-/// Scan one local directory without following symlinks.
+/// Scan one local directory, skipping descendant symlinks.
+/// A symlink passed as the root is resolved. Scan a stable tree: concurrent
+/// replacements are not isolated and can change which files are opened.
 pub fn scan(root: &Path, options: &ScanOptions) -> Result<ScanResult, Error> {
     validate_path(root)?;
     let workers = options.threads.clamp(1, 256);
@@ -186,6 +188,9 @@ fn process_file(task: Task, root: &Path, attributes: &Attributes, result: &mut S
                 return;
             }
         }
+    }
+    if prefix[..length].contains(&0) {
+        return;
     }
     let overrides = attributes.for_path(&task.path);
     let classifications = classify_path(root, &task.path);

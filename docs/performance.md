@@ -43,8 +43,7 @@ statistically stable performance claims.
 
 ## Release binary and peak RSS
 
-After the compatibility fixes, a separate deterministic fixture under
-`/private/tmp/langstats-release-bench-5000` contained 5,000 Rust files in 50
+After the compatibility fixes, a separate deterministic temporary fixture contained 5,000 Rust files in 50
 directories, each 200 bytes (1,000,000 counted bytes = **1 decimal MB**, about
 0.954 MiB). This matches the script's `large` fixture shape. Five independent
 processes ran `target/release/langstats --json` with `/usr/bin/time -l` and a

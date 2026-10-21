@@ -40,6 +40,8 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - name: Tests
         run: cargo test --workspace --all-features --locked
+      - name: Release tooling regression tests
+        run: python scripts/test_release.py
       - name: Release build
         run: cargo build --release --locked --target ${{ matrix.target }}
       - name: Unix installer regression tests

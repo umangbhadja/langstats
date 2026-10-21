@@ -5,7 +5,7 @@ Counts source bytes by language, inspired by GitHub's language bar.
 
 ## Features
 
-- Parallel, bounded-memory directory scan; no runtime network or GitHub account.
+- Parallel directory scan with a bounded work queue; no runtime network or GitHub account.
 - Git ignore rules, hidden-file controls, safe default symlink behavior.
 - Pinned GitHub Linguist names, extensions, filenames, aliases, types, and colors.
 - Nested `.gitattributes` overrides for key Linguist attributes.
@@ -107,7 +107,7 @@ JSON example:
 ```json
 {
   "schema_version": 1,
-  "tool": {"name": "langstats", "version": "0.2.0"},
+  "tool": {"name": "langstats", "version": "0.2.2"},
   "repository": {"path": ".", "name": "."},
   "summary": {"files_scanned": 1, "files_counted": 1, "total_bytes": 13, "language_count": 1, "warnings_truncated": 0},
   "languages": [{"name": "Rust", "bytes": 13, "percentage": 100.0, "files": 1, "color": "#dea584"}],
@@ -126,21 +126,20 @@ Metadata derives from [GitHub Linguist](https://github.com/github-linguist/lingu
 commit `e30359651f214629c697f1eab0eb167dc108e972`, under MIT terms in
 `NOTICE`. Detection is **not fully Linguist compatible**. It uses a bounded
 8 KiB prefix, selected content rules, and a documented attribute subset.
+Attribute files and rules are loaded into memory; memory use grows with their size.
 `.gitignore` works in Git and ordinary directories. `.git` internals and
-symlinks are skipped. Relevant `.gitattributes` overrides include
+descendant symlinks are skipped. A symlink supplied as the scan root is
+resolved. Scan a stable tree: concurrent file replacement is not isolated.
+Relevant `.gitattributes` overrides include
 `linguist-language`, `linguist-detectable`, `linguist-generated`,
 `linguist-vendored`, and `linguist-documentation`. See
 [compatibility details](docs/compatibility.md) and [metadata updates](docs/metadata-updates.md).
 
 ## Platforms and performance
 
-CI checks macOS ARM64/x64, Linux ARM64/x64, and Windows ARM64/x64.
-[PR #1](https://github.com/umangbhadja/langstats/pull/1) reported passing
-quality jobs on all six native runners. macOS ARM64 and x64 builds and tests
-also passed locally (x64 through Rosetta). The `v0.1.0` release workflow
-published six archives; their checksums and contents passed local verification.
-The published macOS ARM64 executable ran locally. CI includes installer smoke
-tests on all six native runners; check the current workflow run for their results.
+CI defines native build and test jobs for macOS ARM64/x64, Linux ARM64/x64,
+and Windows ARM64/x64, plus installer regression and smoke tests. Consult
+current workflow results for platform validation.
 The 53 checked-in fixtures matched pinned GitHub Linguist v9.7.0 locally;
 this compares nonzero language byte totals for those fixtures only.
 On an Apple M1 MacBook Air, a warmed release scan of a 5,000-file,

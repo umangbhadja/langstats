@@ -5,6 +5,7 @@ import hashlib
 import io
 import os
 import pathlib
+import re
 import sys
 import tarfile
 import zipfile
@@ -17,13 +18,23 @@ def main():
     target = sys.argv[2]
     version = (sys.argv[3] if len(sys.argv) == 5 else os.environ.get("RELEASE_TAG", "")).removeprefix("v")
     output = pathlib.Path(sys.argv[-1])
-    if not binary.is_file() or not version:
+    if not binary.is_file() or binary.is_symlink() or not version:
         raise SystemExit("binary missing or version empty")
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?", version):
+        raise SystemExit("invalid release version")
+    if target not in {
+        "aarch64-apple-darwin", "x86_64-apple-darwin",
+        "aarch64-unknown-linux-gnu", "x86_64-unknown-linux-gnu",
+        "aarch64-pc-windows-msvc", "x86_64-pc-windows-msvc",
+    }:
+        raise SystemExit("unsupported release target")
     output.mkdir(parents=True, exist_ok=True)
     exe = "langstats.exe" if "windows" in target else "langstats"
     archive_name = f"langstats-v{version}-{target}"
     data = binary.read_bytes()
     notices = {name: pathlib.Path(name).read_bytes() for name in ("LICENSE", "NOTICE")}
+    if not data or any(not contents.strip() for contents in notices.values()):
+        raise SystemExit("binary and notices must be nonempty")
     if "windows" in target:
         archive = output / f"{archive_name}.zip"
         with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as package:

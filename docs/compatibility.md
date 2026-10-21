@@ -34,10 +34,7 @@ Known differences:
 The implementation tests cover representative local fixtures. Run
 `python3 scripts/compare_linguist.py target/release/langstats` after installing
 the upstream `github-linguist` executable to compare 53 checked-in cases.
-The comparison used an isolated Ruby 3.3.0 build, ICU 78.3, and pinned
-`github-linguist` v9.7.0. System Ruby 2.6 could not compile its
-`charlock_holmes` dependency against that ICU. The corpus initially exposed
-`.html` (dropped) and `.php` (misclassified as Hack); both were fixed and
-regression-tested. The expanded corpus also exposed ambiguous `node` shebangs
-and minified-file exclusion interactions; both were fixed with focused tests.
-Broader classifier and attribute parity remain unverified.
+Pin the upstream version when comparing results. Broader classifier and
+attribute parity remain unverified. Boolean overrides support bare and `-`
+forms; explicit `=true`/`=false`, quoted language names, and other Git attribute
+syntax are not supported. Unknown language overrides warn and exclude the file.
