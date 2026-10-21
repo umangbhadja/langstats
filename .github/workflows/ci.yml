@@ -26,9 +26,10 @@ jobs:
         run: |
           rustup update stable
           rustup component add rustfmt clippy
-      - name: Cache Rust dependencies on macOS Intel
-        if: matrix.os == 'macos-15-intel'
+      - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: ${{ matrix.target }}
       - name: Format
         run: cargo fmt --all -- --check
       - name: Clippy

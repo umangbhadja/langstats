@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1
+
+- Reduce installer overhead with HEAD release lookup and concurrent archive
+  and checksum downloads; extract Unix archives once.
+- Show installation stage timings and clean up background downloads on failure.
+- Add installer regression coverage for supported platforms and failure paths.
+- Check release versions before starting platform builds and cache Rust
+  dependencies across CI and release jobs.
+
 ## 0.2.0
 
 - Add one-line, SHA-256-verified installers for macOS, Linux, and Windows.

@@ -5,7 +5,21 @@ on:
 permissions:
   contents: read
 jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - name: Check version before scheduling platform builds
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python scripts/check_release_version.py
   build:
+    needs: preflight
     strategy:
       fail-fast: false
       matrix:
@@ -28,6 +42,10 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: python scripts/check_release_version.py
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          shared-key: ${{ matrix.target }}
       - name: Format
         run: cargo fmt --all -- --check
       - name: Clippy
