@@ -23,58 +23,25 @@ Local package test:
 
 ```sh
 cargo build --release --locked
-python scripts/package_release.py target/release/langstats aarch64-apple-darwin 0.1.0 dist
+python scripts/package_release.py target/release/langstats aarch64-apple-darwin 0.2.2 dist
 python scripts/verify_release.py dist
 ```
 
 Use the actual host target instead of `aarch64-apple-darwin` on other systems.
 Do not label a binary with an architecture it was not built for.
-On 2026-10-13, local ARM64 and x64 macOS release binaries were packaged and
-the two resulting archives passed `verify_release.py`. A synthetic Windows
-`.exe` archive passed naming, layout, and checksum checks; no Windows binary
-was built locally. Actual Linux and Windows release assets require CI.
 
-## Cross-platform and publication audit, 2026-10-13
+The workflow checks the release tag against the Cargo version. The preflight
+also requires the tagged commit to be an ancestor of `main`. Configure protected
+tags and repository approval rules separately; ancestry alone is not approval.
+Only the publishing job receives `contents: write`.
 
-At the time of this audit, the CI and release matrices used matching Rust
-target triples and runner
-architectures: `aarch64-apple-darwin`, `x86_64-apple-darwin`,
-`aarch64-unknown-linux-gnu`, `x86_64-unknown-linux-gnu`,
-`aarch64-pc-windows-msvc`, and `x86_64-pc-windows-msvc`. GitHub documents the
-selected [runner labels](https://docs.github.com/en/actions/how-tos/write-workflows/choose-where-workflows-run/choose-the-runner-for-a-job),
-but neither workflow had run remotely as of 2026-10-13. Action
-references are pinned to full commits obtained from the official action tags.
-All jobs have `contents: read` except the publishing job, which has
-`contents: write` for the future release creation step.
+Archives contain exactly three unique, nonempty regular files: the platform
+binary, `LICENSE`, and `NOTICE`. Unix binaries must have an executable bit.
+The verifier validates each sidecar checksum and writes `SHA256SUMS` only after
+all archives pass. Matching checksums detect corruption; they do not establish
+publisher authenticity. Download through the trusted repository release URL.
 
-On this macOS ARM64 host, native and Rosetta x64 macOS tests and release builds
-passed. `cargo check --release --locked --tests --target <triple>` passed for
-both Linux and both Windows targets. These checks compile source and tests but
-do not link or execute them. A Linux x64 release link attempt failed because
-the macOS linker rejected GNU options (`--as-needed`, `-Bstatic`, and others).
-A Windows x64 release link attempt failed because `link.exe` is absent. Docker
-CLI exists but its daemon is unavailable. Native Linux and Windows runners
-were therefore still needed for builds, tests, symlink behavior, and archives.
-The Windows symlink regression test reports when the runner denies symlink
-creation; that case remains unverified even if the rest of the test suite passes.
-
-The release workflow injects `${{ github.ref_name }}` as `RELEASE_TAG` and
-`check_release_version.py` requires the exact `v`-prefixed Cargo version;
-`v0.1.0` passed locally and `v0.2.0` was rejected. `package_release.py`
-uses `.tar.gz` with `langstats` on Unix and `.zip` with `langstats.exe` on
-Windows. `verify_release.py` checks each archive's SHA-256 and the expected
-binary, `LICENSE`, and `NOTICE` members. The subsequent `v0.1.0` release run
-published all six archives; downloaded assets passed local verification.
-
-The repository returned HTTP 404 to this environment on 2026-10-13, before
-it became public. After each release, download all six real assets, verify
-`SHA256SUMS`, and test both installers on their supported runners.
-
-## CI after public repository merge
-
-[PR #1](https://github.com/umangbhadja/langstats/pull/1) reported passing
-quality checks for all six native runner and target pairs, plus the metadata
-check. These checks include format, Clippy, tests, and release builds. They do
-not verify the tag-triggered release workflow, downloaded archives, or
-installation. Windows symlink coverage may be skipped if the runner denies
-symlink creation; inspect that test's output before claiming it passed.
+After publication, download all six actual assets, verify them, and exercise
+install, update, and uninstall on each supported runner. Windows symlink tests
+may skip when the runner denies symlink creation; inspect test output before
+claiming that coverage passed.

@@ -1,5 +1,5 @@
 use clap::{Parser, ValueEnum};
-use langstats::output::{Filter, Sort as ReportSort, build_report, terminal};
+use langstats::output::{Filter, Sort as ReportSort, build_report, escape_terminal, terminal};
 use langstats::scanner::{ScanOptions, scan};
 use std::io::{IsTerminal, Write};
 use std::path::PathBuf;
@@ -86,7 +86,7 @@ fn main() {
     let result = match scan(&cli.path, &options) {
         Ok(result) => result,
         Err(error) => {
-            eprintln!("langstats: {error}");
+            eprintln!("langstats: {}", escape_terminal(&error.to_string()));
             std::process::exit(2);
         }
     };
@@ -138,13 +138,19 @@ fn main() {
     if (!cli.quiet || cli.verbose) && !result.warnings.is_empty() {
         if cli.verbose {
             for warning in &result.warnings {
-                eprintln!("langstats: {warning}");
+                eprintln!("langstats: {}", escape_terminal(warning));
+            }
+            if result.skipped_warnings > 0 {
+                eprintln!(
+                    "langstats: {} additional warning(s) omitted",
+                    result.skipped_warnings
+                );
             }
         } else {
             eprintln!(
                 "langstats: {} scan warning(s); first: {}",
                 result.warnings.len() + result.skipped_warnings as usize,
-                result.warnings[0]
+                escape_terminal(&result.warnings[0])
             );
         }
     }

@@ -1,3 +1,25 @@
 /target/
+/dist/
 *.profraw
 .DS_Store
+__pycache__/
+*.py[cod]
+
+# Local credentials and machine-specific configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+/.aws/
+/.ssh/
+/.agents/
+/.codex/
+/.idea/
+/.vscode/
+
+# Internal working notes; keep public documentation task-focused
+/docs/APP_REVIEW.md

@@ -106,12 +106,29 @@ pub fn build_report<'a>(
     }
 }
 
+/// Escape untrusted text before writing it to a human-readable terminal stream.
+pub fn escape_terminal(text: &str) -> String {
+    let mut escaped = String::with_capacity(text.len());
+    for character in text.chars() {
+        if character.is_control()
+            || matches!(character, '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}')
+        {
+            escaped.extend(character.escape_default());
+        } else {
+            escaped.push(character);
+        }
+    }
+    escaped
+}
+
 pub fn terminal(report: &Report<'_>, color: bool, quiet: bool) -> String {
     let mut output = String::new();
     if !quiet {
         output.push_str(&format!(
             "Repository: {}\nFiles analyzed: {}\nTotal bytes: {}\n\nLanguages\n\n",
-            report.repository.name, report.summary.files_counted, report.summary.total_bytes
+            escape_terminal(report.repository.name),
+            report.summary.files_counted,
+            report.summary.total_bytes
         ));
     }
     for lang in &report.languages {
@@ -128,18 +145,24 @@ pub fn terminal(report: &Report<'_>, color: bool, quiet: bool) -> String {
         };
         output.push_str(&format!(
             "{:<18} {:>6.2}%  {}\n",
-            lang.name, lang.percentage, bar
+            escape_terminal(&lang.name),
+            lang.percentage,
+            bar
         ));
     }
     if report.languages.is_empty() && !quiet {
-        output.push_str("No counted source files.\n");
+        output.push_str(if report.summary.files_counted == 0 {
+            "No counted source files.\n"
+        } else {
+            "No languages match the display filters.\n"
+        });
     }
     output
 }
 
 fn parse_color(hex: &str) -> Option<(u8, u8, u8)> {
     let hex = hex.strip_prefix('#')?;
-    if hex.len() != 6 {
+    if hex.len() != 6 || !hex.is_ascii() {
         return None;
     }
     Some((
@@ -154,6 +177,15 @@ mod tests {
     use super::*;
     use crate::scanner::Counts;
     use std::collections::BTreeMap;
+
+    #[test]
+    fn terminal_text_escapes_controls_and_keeps_unicode() {
+        let escaped = escape_terminal("café\x1b[2J\n\r\x07\u{009b}\u{202e}");
+        assert!(escaped.starts_with("café\\u{1b}[2J\\n\\r"));
+        assert!(!escaped.chars().any(char::is_control));
+        assert!(!escaped.contains('\u{202e}'));
+        assert_eq!(parse_color("#aé123"), None);
+    }
 
     #[test]
     fn filtered_percent_uses_all_counted_bytes() {

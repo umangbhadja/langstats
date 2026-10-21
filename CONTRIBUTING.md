@@ -8,6 +8,8 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 cargo test --workspace --all-features --locked
 cargo build --release --locked
+python3 scripts/test_release.py
+python3 scripts/test_install.py # Unix; use scripts/test_install.ps1 on Windows
 ```
 
 Document Linguist compatibility differences and benchmark performance changes

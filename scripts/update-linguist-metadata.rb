@@ -3,7 +3,7 @@ require 'json'
 require 'yaml'
 
 abort 'usage: ruby scripts/update-linguist-metadata.rb LANGUAGES_YML' unless ARGV.length == 1
-source = YAML.load_file(ARGV.fetch(0))
+source = YAML.safe_load(File.read(ARGV.fetch(0)), permitted_classes: [], permitted_symbols: [], aliases: false)
 fields = %w[type group color extensions filenames aliases interpreters]
 languages = source.sort.map do |name, properties|
   { 'name' => name }.merge(properties.select { |key, _| fields.include?(key) })

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.2
+
+- Exclude local credentials, internal working notes, and generated artifacts from
+  publication; limit Cargo package contents to runtime sources and public assets.
+- Escape untrusted terminal text and exclude binary prefixes even with language
+  overrides; clarify filtered output and truncated warning counts.
+- Validate release package inputs and reject duplicate, linked, empty, or
+  nonexecutable archive payloads; require release commits to belong to `main`.
+- Replace internal audit history with public documentation of supported behavior
+  and remaining resource and concurrency limits.
+
 ## 0.2.1
 
 - Reduce installer overhead with HEAD release lookup and concurrent archive
